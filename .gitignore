@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Odoo
+*.log
+*.pot
+.odoo/
+filestore/
+
+# IDEs / OS
+.idea/
+.vscode/
+.DS_Store
