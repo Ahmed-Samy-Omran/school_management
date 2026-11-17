@@ -1,5 +1,3 @@
-from turtle import st
-
 from odoo import models, fields, api
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import ValidationError

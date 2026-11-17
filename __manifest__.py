@@ -11,7 +11,7 @@
         - Student search and filtering
     """,
     'category': 'Education',
-    'author': 'ِAhmed Omran',
+    'author': 'Ahmed Omran',
     'license': 'LGPL-3',
     'depends': ['base'],
     'data': [
