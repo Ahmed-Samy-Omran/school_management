@@ -102,7 +102,7 @@ class SchoolTeacher(models.Model):
                 else "No contact information available."
             )
 
-    @api.depends("email", "phone")
+    @api.constrains("email")
     def _check_email(self):
         email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 
