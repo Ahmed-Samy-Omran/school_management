@@ -93,9 +93,9 @@ class SchoolTeacher(models.Model):
         for teacher in self:
             contact_info = []
             if teacher.email:
-                contact_info.append(f"Email:{teacher.email}")
+                contact_info.append(f"Email: {teacher.email}")
             if teacher.phone:
-                contact_info.append(f"Phone:{teacher.phone}")
+                contact_info.append(f"Phone: {teacher.phone}")
             teacher.contact_summary = (
                 " | ".join(contact_info)
                 if contact_info

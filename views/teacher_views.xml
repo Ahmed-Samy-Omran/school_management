@@ -6,7 +6,7 @@
         <field name="name">school.teacher.list</field>
         <field name="model">school.teacher</field>
         <field name="arch" type="xml">
-            <list string="teachers" default_order="employee_number">
+            <list string="Teachers" default_order="employee_number">
                 <field name="employee_number" />
                 <field name="name" />
                 <field name="specialization" />
@@ -48,7 +48,7 @@
                         <group string="Contact Information">
                             <field name="email" />
                             <field name="phone" />
-                            <field name="contact_summary" string="Contact Summary" />
+                            <field name="contact_summary" string="Contact Summary" readonly="1" />
 
                         </group>
                     </group>
@@ -61,7 +61,7 @@
         </field>
     </record>
 
-    <record id="veiw_school_teacher_search" model="ir.ui.view">
+    <record id="view_school_teacher_search" model="ir.ui.view">
         <field name="name">school.teacher.search</field>
         <field name="model">school.teacher</field>
         <field name="arch" type="xml">
@@ -121,7 +121,7 @@
         <field name="name">Teachers</field>
         <field name="res_model">school.teacher</field>
         <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="veiw_school_teacher_search" />
+        <field name="search_view_id" ref="view_school_teacher_search" />
     </record>
 
     <menuitem
