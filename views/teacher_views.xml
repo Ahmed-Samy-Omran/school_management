@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- teacher List View -->
+    <record id="view_school_teacher_list" model="ir.ui.view">
+        <field name="name">school.teacher.list</field>
+        <field name="model">school.teacher</field>
+        <field name="arch" type="xml">
+            <list string="teachers" default_order="employee_number">
+                <field name="employee_number" />
+                <field name="name" />
+                <field name="specialization" />
+                <field name="employment_type" />
+                <field name="hire_date" />
+                <field name="years_of_service" />
+                <field name="email" />
+                <field name="active" optional="hide" />
+                <field name="contact_summary" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_teacher_form" model="ir.ui.view">
+        <field name="name">school.teacher.form</field>
+        <field name="model">school.teacher</field>
+        <field name="arch" type="xml">
+            <form string="Teacher">
+                <sheet>
+
+                    <div class="oe_title">
+                        <label for="name" />
+                        <h1>
+                            <field name="name"
+                                placeholder="Enter teacher name" />
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Employment Information">
+                            <field name="employee_number" />
+                            <field name="specialization" />
+                            <field name="employment_type" />
+                            <field name="hire_date" />
+                            <field name="years_of_service"
+                                readonly="1" />
+                        </group>
+
+                        <group string="Contact Information">
+                            <field name="email" />
+                            <field name="phone" />
+                            <field name="contact_summary" string="Contact Summary" />
+
+                        </group>
+                    </group>
+
+                    <field name="active" invisible="1" />
+
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="veiw_school_teacher_search" model="ir.ui.view">
+        <field name="name">school.teacher.search</field>
+        <field name="model">school.teacher</field>
+        <field name="arch" type="xml">
+            <search string="Search Teachers">
+                <field name="name" />
+                <field name="employee_number" />
+                <field name="email" />
+                <filter name="filter_active"
+                    string="Active Teachers"
+                    domain="[('active','=',True)]" />
+                <filter
+                    name="filter_archived"
+                    string="Archived Teachers"
+                    domain="[('active', '=', False)]"
+                />
+
+                <separator />
+                <filter
+                    name="filter_full_time"
+                    string="Full-Time"
+                    domain="[('employment_type', '=', 'full_time')]"
+                />
+
+                <filter
+                    name="filter_part_time"
+                    string="Part-Time"
+                    domain="[('employment_type', '=', 'part_time')]"
+                />
+
+                <filter
+                    name="filter_by_mathematics"
+                    string="Mathematics"
+                    domain="[('specialization', '=', 'mathematics')]"
+                />
+                <filter
+                    name="filter_by_computer_science"
+                    string="Computer Science"
+                    domain="[('specialization', '=', 'computer_science')]"
+                />
+
+                <!-- في Odoo 19 يجب أن يكون وسم group بدون string أو expand -->
+                <group>
+                    <filter name="group_by_employment_type"
+                        string="Employment Type"
+                        context="{'group_by': 'employment_type'}" />
+                    <filter name="group_by_specialization"
+                        string="Specialization"
+                        context="{'group_by': 'specialization'}" />
+                </group>
+
+            </search>
+        </field>
+
+    </record>
+
+    <record id="action_school_teacher" model="ir.actions.act_window">
+        <field name="name">Teachers</field>
+        <field name="res_model">school.teacher</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="veiw_school_teacher_search" />
+    </record>
+
+    <menuitem
+        id="menu_school_teacher"
+        name="Teachers"
+        parent="menu_school_root"
+        action="action_school_teacher"
+        sequence="20"
+    />
+</odoo>
