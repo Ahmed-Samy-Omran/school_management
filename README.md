@@ -5,29 +5,36 @@
 ![License](https://img.shields.io/badge/License-LGPL--3-blue?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=for-the-badge)
 
-A standalone **Odoo 19** module to manage students, teachers and basic school
-operations. This repository contains **only** the `school_management` module.
+A standalone **Odoo 19** module to manage students, teachers, academic years
+and basic school operations. This repository contains **only** the
+`school_management` module.
 
 ---
 
 ## 📌 Overview
 
-The module adds a **School Management** application to Odoo with two registries:
+The module adds a **School Management** application to Odoo with three
+registries:
 
 - **Students** — registration, personal data, computed age and archiving.
 - **Teachers** — employment data, specialization, computed years of service,
   contact summary and email validation.
+- **Academic Years** — dated school years, computed duration, open/close
+  lifecycle and a single current year.
 
 | Feature | Description |
 | --- | --- |
 | Student registration | Create, edit and archive student records |
 | Teacher registration | Create, edit and archive teacher records |
-| Unique identifiers | `unique(admission_number)` and `unique(employee_number)` at DB level |
+| Academic year management | Create school years, track duration and lifecycle state |
+| Unique identifiers | `unique(admission_number)`, `unique(employee_number)` and `unique(code)` at DB level |
 | Auto-computed age | Derived from the student's date of birth, always up to date |
 | Auto-computed years of service | Derived from the teacher's hire date |
+| Auto-computed duration | Academic year length in days, derived from its start/end dates |
 | Contact summary | Teacher email/phone summarized in one stored field |
-| Validations | Future dates and invalid emails are rejected |
-| Search & filters | Name / number / email search, active-archived filters, grouping |
+| Validations | Future dates, invalid emails, invalid periods and overlapping active years are rejected |
+| Current year rule | Only one active academic year can be marked as current |
+| Search & filters | Name / number / email / code search, state and current-year filters, grouping |
 | Multi-user access | Access rights defined for internal users |
 
 ---
@@ -51,18 +58,27 @@ flowchart TD
     B2 --> B2b["Computed<br/>years_of_service, contact_summary"]
     B2 --> B2c["Constraints<br/>unique(employee_number)<br/>hire_date not in future<br/>valid email format"]
 
+    B --> B3["school.academic_year"]
+    B3 --> B3a["Fields<br/>name, code, date_start, date_end,<br/>state, is_current, active"]
+    B3 --> B3b["Computed<br/>duration_days «stored»"]
+    B3 --> B3c["Constraints<br/>unique(code)<br/>date_start <= date_end<br/>no overlapping active years<br/>one current year"]
+    B3 --> B3d["Actions<br/>action_open · action_close<br/>action_set_current"]
+
     C --> C1["Student Views<br/>list · form · search"]
     C --> C2["Teacher Views<br/>list · form · search"]
-    C --> C3["Window Actions<br/>action_school_student<br/>action_school_teacher"]
+    C --> C3["Academic Year Views<br/>list · form · search"]
+    C --> C4["Window Actions<br/>action_school_student<br/>action_school_teacher<br/>action_academic_year"]
 
     D --> D1["ir.model.access.csv<br/>base.group_user: R/W/C/D"]
 
     E --> E1["School Management"]
     E1 --> E2["Students"]
     E1 --> E3["Teachers"]
+    E1 --> E4["Academic Years"]
 
     C1 --> E2
     C2 --> E3
+    C3 --> E4
 ```
 
 ---
@@ -100,6 +116,24 @@ classDiagram
         +_compute_contact_summary()
         +_check_email()
     }
+
+    class school_academic_year {
+        +Char name
+        +Char code «unique»
+        +Date date_start
+        +Date date_end
+        +Selection state «draft · open · closed»
+        +Boolean is_current
+        +Boolean active
+        +Integer duration_days «computed, stored»
+        +_compute_duration_days()
+        +_check_dates()
+        +_check_overlapping_academic_years()
+        +_check_current_academic_year()
+        +action_open()
+        +action_close()
+        +action_set_current()
+    }
 ```
 
 ### `school.teacher` fields
@@ -115,6 +149,41 @@ classDiagram
 | `employment_type` | Selection | Full Time, Part Time, Contract |
 | `years_of_service` | Integer | Computed from `hire_date` (not stored) |
 | `active` | Boolean | Enables archive/unarchive |
+
+### `school.academic_year` fields
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | Char | Required, indexed |
+| `code` | Char | Required, unique, indexed, not copied |
+| `date_start` / `date_end` | Date | Required; end must be on or after start |
+| `duration_days` | Integer | Computed and stored from `date_start`/`date_end` (inclusive) |
+| `state` | Selection | `draft` → `open` → `closed`; required, indexed |
+| `is_current` | Boolean | Only one active, open year can be current |
+| `active` | Boolean | Enables archive/unarchive |
+
+### Academic year lifecycle
+
+```mermaid
+flowchart TD
+    New([Create academic year]) --> V{Start <= end and<br/>no overlap with an<br/>active year?}
+    V -- No --> Err1[ValidationError]
+    V -- Yes --> Draft[draft]
+    Draft -- action_open --> Open[open]
+    Open -- action_set_current --> Current[current year]
+    Open -- action_close --> Closed[closed]
+    Current -- action_close --> Closed
+```
+
+**Constraints**
+
+- Academic year `code` must be unique (DB constraint).
+- `date_end` must be greater than or equal to `date_start` (`ValidationError`).
+- Active academic years may not overlap (`ValidationError`).
+- The current academic year must be active and in the `open` state, and only one
+  year can be current at a time (`ValidationError`).
+- A closed academic year cannot be reopened; closing it clears `is_current`.
+- `duration_days` is stored and recomputed whenever the dates change.
 
 ### Business rules
 
@@ -133,10 +202,14 @@ flowchart TD
 
 - `school.student.admission_number` must be unique (DB constraint).
 - `school.teacher.employee_number` must be unique (DB constraint).
+- `school.academic_year.code` must be unique (DB constraint).
 - `date_of_birth` and `hire_date` cannot be future dates (`ValidationError`).
 - Teacher `email`, when filled, must match a valid email pattern.
+- Academic years require a valid period and cannot overlap when active
+  (`ValidationError`).
+- Only one active, open academic year can be current (`ValidationError`).
 - `age` and `years_of_service` are computed on the fly, so they stay accurate
-  over time.
+  over time; `duration_days` is computed and stored.
 
 ---
 
@@ -150,12 +223,14 @@ school_management/
 ├── models/
 │   ├── __init__.py
 │   ├── student.py
-│   └── teacher.py
+│   ├── teacher.py
+│   └── academic_year.py
 ├── security/
 │   └── ir.model.access.csv
 ├── views/
 │   ├── student_views.xml
-│   └── teacher_views.xml
+│   ├── teacher_views.xml
+│   └── academic_year_views.xml
 ├── .gitignore
 └── README.md
 ```
@@ -173,6 +248,8 @@ school_management/
 2. Restart the Odoo server.
 3. In Odoo: **Apps → Update Apps List**.
 4. Search for **School Management System** and click **Install**.
+5. If the module is already installed, click **Upgrade** instead to load new
+   models, views and menus.
 
 > Requires Odoo **19.0**.
 
@@ -186,8 +263,13 @@ school_management/
 3. **Teachers → New**: fill the name, employee number, hire date,
    specialization and employment type — years of service and contact summary
    are computed for you.
-4. Use the search bar to filter **Active / Archived**, filter by employment
-   type or specialization, and group by gender / specialization.
+4. **Academic Years → New**: fill the name, a unique code and the start/end
+   dates; the duration in days is computed automatically. Use **Open** to move
+   the year from draft to open, **Set as Current** to make it the active year
+   and **Close** to finish it.
+5. Use the search bar to filter **Active / Archived**, filter academic years by
+   state or current year, filter teachers by employment type or specialization,
+   and group by gender / specialization.
 
 ---
 
@@ -200,7 +282,8 @@ graph LR
     C --> D["✅ Access rights"]
     D --> E["✅ Search & filters"]
     E --> F["✅ Teacher model, views & rules"]
-    F --> G["⬜ Classes & enrollment"]
+    F --> F2["✅ Academic year model, views & rules"]
+    F2 --> G["⬜ Classes & enrollment"]
     G --> H["⬜ Attendance"]
     H --> I["⬜ Grades & reports"]
 ```
@@ -212,6 +295,8 @@ graph LR
 - [x] Search filters and grouping
 - [x] Teacher model: unique employee number, computed service years, contact summary, email validation
 - [x] Teacher list / form / search views, action and menu
+- [x] Academic year model: unique code, computed duration, period/overlap/current-year validation and lifecycle actions
+- [x] Academic year list / form / search views, action and menu
 - [ ] Classes & enrollment
 - [ ] Attendance
 - [ ] Grades & reports

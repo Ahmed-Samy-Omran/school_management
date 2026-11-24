@@ -78,16 +78,6 @@ class SchoolTeacher(models.Model):
             else:
                 teacher.years_of_service = 0
 
-    # @api.depends("email", "phone")
-    # def _compute_contact_summary(self):
-    #     for teacher in self:
-    #         contact_info = []
-    #         if teacher.email:
-    #             contact_info.append(f"Email: {teacher.email}")
-    #         if teacher.phone:
-    #             contact_info.append(f"Phone: {teacher.phone}")
-    #         teacher.contact_summary = " | ".join(contact_info) if contact_info else "No contact information available."
-
     @api.depends("email", "phone")
     def _compute_contact_summary(self):
         for teacher in self:

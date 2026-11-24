@@ -1,0 +1,164 @@
+<odoo>
+    <!-- Academic Year List -->
+    <record id="view_academic_year_list" model="ir.ui.view">
+        <field name="name">academic.year.list</field>
+        <field name="model">school.academic_year</field>
+        <field name="arch" type="xml">
+            <list string="Academic Years"
+                default_order="date_start desc">
+
+                <field name="name" />
+                <field name="code" />
+                <field name="date_start" />
+                <field name="date_end" />
+                <field name="duration_days" />
+                <field name="state" />
+                <field name="is_current" />
+                <field name="active" optional="hide" />
+
+            </list>
+
+
+        </field>
+    </record>
+
+    <!-- Academic Year Form -->
+    <record id="view_school_academic_year_form" model="ir.ui.view">
+        <field name="name">school.academic.year.form</field>
+        <field name="model">school.academic_year</field>
+        <field name="arch" type="xml">
+            <form string="Academic Year">
+
+                <header>
+
+                    <button
+                        name="action_open"
+                        string="Open"
+                        class="btn-primary"
+                        invisible="state !='draft'"
+                        type="object"
+                    />
+
+                    <button
+                        name="action_set_current"
+                        type="object"
+                        string="Set as Current"
+                        class="btn-primary"
+                        invisible="state != 'open' or is_current or not active"
+                    />
+
+                    <button
+                        name="action_close"
+                        string="Close"
+                        class="btn-danger"
+                        invisible="state != 'open'"
+                        type="object"
+                    />
+                </header>
+
+
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" />
+                        <h1>
+                            <field name="name" placeholder="Academic Year Name" />
+                        </h1>
+                    </div>
+
+                    <group>
+
+                        <group string="Academic Period">
+                            <field name="code" />
+                            <field name="date_start" />
+                            <field name="date_end" />
+                            <field name="duration_days" readonly="1" />
+                        </group>
+
+                        <group string="Status">
+                            <field name="is_current" readonly="1" />
+                            <field name="active" />
+                        </group>
+
+                    </group>
+
+                </sheet>
+
+            </form>
+
+        </field>
+
+    </record>
+
+    <!-- Academic Year Search -->
+    <record id="view_academic_year_search" model="ir.ui.view">
+        <field name="name">academic.year.search</field>
+        <field name="model">school.academic_year</field>
+        <field name="arch" type="xml">
+            <search string="Search Academic Years"
+            >
+                <field name="name" />
+                <field name="code" />
+                <filter
+                    name="filter_current"
+                    string="Current Academic Year"
+                    domain="[('is_current', '=', True)]"
+                />
+
+
+                <separator />
+
+                <filter
+                    name="filter_open"
+                    string="Open"
+                    domain="[('state', '=', 'open')]"
+                />
+
+                <filter
+                    name="filter_draft"
+                    string="Draft"
+                    domain="[('state', '=', 'draft')]"
+                />
+
+                <filter
+                    name="filter_closed"
+                    string="Closed"
+                    domain="[('state', '=', 'closed')]"
+                />
+
+                <group>
+                    <filter
+                        name="group_state"
+                        string="Status"
+                        context="{'group_by':'state'}"
+                    />
+                    <filter
+                        name="group_current"
+                        string="Current Year"
+                        context="{'group_by': 'is_current'}"
+                    />
+                </group>
+            </search>
+
+
+        </field>
+    </record>
+
+    <!-- Window Action -->
+    <record id="action_academic_year" model="ir.actions.act_window">
+        <field name="name">Academic Years</field>
+        <field name="res_model">school.academic_year</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id"
+            ref="view_academic_year_search" />
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem
+        id="menu_school_academic_year"
+        name="Academic Years"
+        parent="menu_school_root"
+        action="action_academic_year"
+        sequence="30"
+    />
+
+</odoo>
