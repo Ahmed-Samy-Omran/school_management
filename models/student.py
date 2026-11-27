@@ -36,6 +36,13 @@ class SchoolStudent(models.Model):
         string="Age", compute="_compute_age"
     )  # i delete store=True because it will store the value in the database and we want it to be computed every time we call it it will change after a year beacuse it depnd on the date of birth
 
+    section_id = fields.Many2one(
+        "school.section",
+        string="Section",
+        required=True,
+        ondelete="restrict",
+        index=True,
+    )
 
     # compute method for age
     @api.depends('date_of_birth')

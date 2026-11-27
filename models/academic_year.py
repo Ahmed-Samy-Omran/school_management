@@ -20,7 +20,7 @@ class AcademicYear(models.Model):
     date_end = fields.Date(string="End Date", required=True)
     is_current = fields.Boolean(string="Is Current", default=False)
     active = fields.Boolean(string="Active", default=True)
-    duration_days = fields.Integer(string="Duration (Days)", compute="_compute_duration_days", store=True)
+    duration_days = fields.Integer(string="Duration (Days)", compute="_compute_duration_days")
     state = fields.Selection(
         [
             ("draft", "Draft"),

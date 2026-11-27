@@ -1,0 +1,146 @@
+<odoo>
+    <!-- Class List -->
+ <record id="view_school_section_list" model="ir.ui.view">
+        <field name="name">school.section.list</field>
+        <field name="model">school.section</field>
+        <field name="arch" type="xml">
+            <list string="Sections" default_order="academic_year_id, class_id">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="class_id"/>
+                <field name="academic_year_id"/>
+                <field name="class_teacher_id"/>
+                <field name="capacity"/>
+                <field name="student_count"/>
+                <field name="available_seats"/>
+                <field name="is_full"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    
+    <!-- Section Form -->
+    <record id="view_school_section_form" model="ir.ui.view">
+        <field name="name">school.section.form</field>
+        <field name="model">school.section</field>
+        <field name="arch" type="xml">
+            <form string="Section">
+                <sheet>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Section Information">
+                            <field name="code"/>
+                            <field name="class_id"/>
+                            <field name="academic_year_id"/>
+                            <field name="class_teacher_id"/>
+                            <field name="active"/>
+                        </group>
+
+                        <group string="Capacity">
+                            <field name="capacity"/>
+                            <field name="student_count" readonly="1"/>
+                            <field name="available_seats" readonly="1"/>
+                            <field name="is_full" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Students">
+                            <field name="student_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="admission_number"/>
+                                    <field name="date_of_birth"/>
+                                    <field name="email"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+        <!-- Section Search -->
+    <record id="view_school_section_search" model="ir.ui.view">
+        <field name="name">school.section.search</field>
+        <field name="model">school.section</field>
+        <field name="arch" type="xml">
+            <search string="Search Sections">
+
+                <field name="name"/>
+                <field name="code"/>
+                <field name="class_id"/>
+                <field name="academic_year_id"/>
+                <field name="class_teacher_id"/>
+
+                <separator/>
+
+                <filter
+                    name="filter_full"
+                    string="Full Sections"
+                    domain="[('is_full', '=', True)]"
+                />
+
+                <filter
+                    name="filter_available"
+                    string="Sections With Seats"
+                    domain="[('is_full', '=', False)]"
+                />
+
+                <filter
+                    name="filter_active"
+                    string="Active Sections"
+                    domain="[('active', '=', True)]"
+                />
+
+                <separator/>
+
+                <filter
+                    name="group_class"
+                    string="Grade"
+                    context="{'group_by': 'class_id'}"
+                />
+
+                <filter
+                    name="group_academic_year"
+                    string="Academic Year"
+                    context="{'group_by': 'academic_year_id'}"
+                />
+
+                <filter
+                    name="group_teacher"
+                    string="Class Teacher"
+                    context="{'group_by': 'class_teacher_id'}"
+                />
+
+            </search>
+        </field>
+    </record>
+
+
+
+    <!-- section Action -->
+    <record id="action_school_section" model="ir.actions.act_window">
+        <field name="name">Sections</field>
+        <field name="res_model">school.section</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem
+        id="menu_school_section"
+        name="Sections"
+        parent="menu_school_root"
+        action="action_school_section"
+        sequence="50"
+    />
+
+</odoo>
